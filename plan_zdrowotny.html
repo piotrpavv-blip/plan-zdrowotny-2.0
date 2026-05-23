@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Plan Zdrowotny">
+<meta name="theme-color" content="#15803d">
+<title>Plan Zdrowotny</title>
+<script>
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>{
+    const sw=`const CACHE='pz-v1';self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(['./',document.location.href]))));self.addEventListener('fetch',e=>e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request))));`;
+    const blob=new Blob([sw],{type:'application/javascript'});
+    navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(()=>{});
+  });
+}
+</script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.47.0/tabler-icons.min.css">
+<style>
+:root{
+  --bg:#fff;--bg2:#f8fafc;--bg3:#f1f5f9;
+  --text:#0f172a;--text2:#64748b;--text3:#94a3b8;
+  --border:rgba(0,0,0,0.08);--border2:rgba(0,0,0,0.15);
+  --blue:#1d4ed8;--blue-bg:#eff6ff;--blue-text:#1e40af;
+  --green:#15803d;--green-bg:#f0fdf4;--green-border:#bbf7d0;--green-text:#166534;
+  --amber:#92400e;--amber-bg:#fef3c7;
+  --red:#dc2626;--orange:#ea580c;--orange-bg:#fff7ed;--orange-border:#fed7aa;
+  --r:14px;--r2:10px;--r3:8px;
+  --shadow:0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.06);
+}
+@media(prefers-color-scheme:dark){
+  :root{
+    --bg:#0f172a;--bg2:#1e293b;--bg3:#0f172a;
+    --text:#f1f5f9;--text2:#94a3b8;--text3:#475569;
+    --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);
+    --blue:#60a5fa;--blue-bg:#1e3a5f;--blue-text:#93c5fd;
+    --green:#4ade80;--green-bg:#052e16;--green-border:#166534;--green-text:#86efac;
+    --amber-bg:#292012;
+    --orange-bg:#2a1200;--orange-border:#7c2d12;
+  }
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg3);color:var(--text);font-size:15px;overscroll-behavior:none}
+.app{max-width:430px;margin:0 auto;padding-bottom:76px;min-height:100vh}
+.header{background:var(--bg);border-bottom:0.5px solid var(--border);padding:13px 16px;position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;box-shadow:var(--shadow)}
+.header h1{font-size:17px;font-weight:600;letter-spacing:-.3px}
+.smoke-pill{background:var(--green-bg);color:var(--green-text);font-size:12px;padding:5px 12px;border-radius:99px;font-weight:600;display:flex;align-items:center;gap:5px;cursor:pointer;border:0.5px solid var(--green-border)}
+.tabs{display:grid;grid-template-columns:repeat(5,1fr);border-bottom:0.5px solid var(--border);background:var(--bg);position:sticky;top:50px;z-index:19;box-shadow:var(--shadow)}
+.tab-btn{padding:10px 0 8px;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:10px;color:var(--text3);border:none;background:transparent;cursor:pointer;position:relative;font-family:inherit;transition:color .15s}
+.tab-btn.active{color:var(--blue)}
+.tab-btn i{font-size:21px}
+.tab-btn::after{content:"";position:absolute;bottom:0;left:25%;right:25%;height:2px;border-radius:2px 2px 0 0;background:var(--blue);opacity:0;transition:opacity .15s}
+.tab-btn.active::after{opacity:1}
+.content{padding:14px}
+.section-title{font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.7px;margin:16px 0 8px;padding-left:2px}
+/* Smoke hero */
+.smoke-hero{background:var(--bg);border-radius:var(--r);border:0.5px solid var(--border);padding:22px 20px 18px;margin-bottom:12px;text-align:center;position:relative;overflow:hidden}
+.smoke-hero::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:var(--green);border-radius:var(--r) var(--r) 0 0}
+.smoke-days{font-size:68px;font-weight:700;color:var(--green);line-height:1;letter-spacing:-3px}
+.smoke-caption{font-size:15px;color:var(--green-text);margin-top:4px;font-weight:500}
+.smoke-since{font-size:12px;color:var(--text2);margin-top:6px}
+.smoke-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:14px}
+.smoke-stat{background:var(--green-bg);border-radius:var(--r3);padding:10px 6px;text-align:center;border:0.5px solid var(--green-border)}
+.smoke-stat-val{font-size:17px;font-weight:600;color:var(--green-text)}
+.smoke-stat-lbl{font-size:10px;color:var(--green-text);margin-top:2px;opacity:.8}
+.smoke-edit{background:var(--green-bg);border-bottom:0.5px solid var(--green-border);padding:9px 16px;display:flex;gap:8px;align-items:center}
+/* KPI */
+.kpi-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.kpi{background:var(--bg);border:0.5px solid var(--border);border-radius:var(--r2);padding:12px 14px}
+.kpi-val{font-size:22px;font-weight:600;color:var(--text)}
+.kpi-lbl{font-size:11px;color:var(--text2);margin-top:3px}
+/* Cards */
+.card{background:var(--bg);border:0.5px solid var(--border);border-radius:var(--r);padding:14px 16px;margin-bottom:10px}
+.card-title{font-size:14px;font-weight:600;margin-bottom:10px;display:flex;align-items:center;gap:8px;color:var(--text)}
+.card-title i{font-size:18px;color:var(--blue)}
+/* Rules */
+.rule{display:flex;align-items:flex-start;gap:10px;padding:7px 0;border-bottom:0.5px solid var(--border);font-size:13px;color:var(--text2);line-height:1.5}
+.rule:last-child{border-bottom:none;padding-bottom:0}
+.rule i{font-size:17px;margin-top:1px;flex-shrink:0}
+.warn-box{background:var(--orange-bg);border:0.5px solid var(--orange-border);border-radius:var(--r3);padding:10px 12px;font-size:12px;color:var(--orange);display:flex;gap:8px;align-items:flex-start;margin-bottom:10px}
+.warn-box i{flex-shrink:0;font-size:16px;margin-top:1px}
+/* Diet */
+.night-row{background:var(--bg);border:0.5px solid var(--border);border-radius:var(--r2);padding:11px 14px;display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.night-lbl{flex:1;font-size:13px;color:var(--text2)}
+.tog{position:relative;width:44px;height:24px;cursor:pointer;flex-shrink:0}
+.tog input{opacity:0;width:0;height:0}
+.tslide{position:absolute;inset:0;background:#cbd5e1;border-radius:12px;transition:.25s}
+.tslide::before{content:"";position:absolute;width:18px;height:18px;left:3px;top:3px;background:white;border-radius:50%;transition:.25s}
+input:checked+.tslide{background:var(--blue)}
+input:checked+.tslide::before{transform:translateX(20px)}
+.date-nav{display:flex;align-items:center;background:var(--bg);border-radius:var(--r2);border:0.5px solid var(--border);padding:8px 12px;margin-bottom:10px}
+.dnav-btn{border:none;background:transparent;cursor:pointer;color:var(--text2);font-size:20px;display:flex;align-items:center;padding:0 6px;line-height:1}
+.dnav-date{flex:1;text-align:center;font-size:14px;font-weight:500;color:var(--text)}
+.today-lnk{font-size:11px;color:var(--blue);border:none;background:transparent;cursor:pointer;padding:0 4px;font-family:inherit}
+/* Meal cards */
+.meal-card{background:var(--bg);border:0.5px solid var(--border);border-radius:var(--r);margin-bottom:10px;overflow:hidden;transition:border-color .2s}
+.meal-card.eaten{border-color:#86efac}
+.meal-card.skipped{border-color:#fdba74}
+.meal-accent{height:3px}
+.meal-header{padding:12px 14px;cursor:pointer;display:flex;align-items:center;gap:11px;-webkit-user-select:none;user-select:none}
+.meal-badge{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;flex-shrink:0;transition:all .2s}
+.meal-badge.c1{background:#e0f2fe;color:#0369a1}
+.meal-badge.c2{background:#f0fdf4;color:#15803d}
+.meal-badge.c3{background:var(--amber-bg);color:var(--amber)}
+.meal-badge.c4{background:#fdf2f8;color:#9d174d}
+.meal-badge.eaten{background:#dcfce7;color:#15803d}
+.meal-badge.skipped{background:#ffedd5;color:#9a3412}
+.meal-name{font-size:14px;font-weight:600;line-height:1.3;color:var(--text)}
+.meal-meta{font-size:11px;color:var(--text2);margin-top:2px}
+.meal-macros{font-size:10px;color:var(--text3);margin-top:1px}
+.caret{font-size:16px;color:var(--text3);transition:transform .2s;flex-shrink:0}
+.caret.open{transform:rotate(180deg)}
+.meal-body{padding:2px 14px 12px;border-top:0.5px solid var(--border)}
+.ingr-list{list-style:none;margin-top:10px}
+.ingr-list li{font-size:13px;color:var(--text2);padding:4px 0;display:flex;align-items:flex-start;gap:8px;line-height:1.4}
+.dot{width:5px;height:5px;border-radius:50%;margin-top:5px;flex-shrink:0}
+.tip-note{background:var(--blue-bg);border-radius:var(--r3);padding:8px 10px;font-size:12px;color:var(--blue-text);margin-top:8px;display:flex;gap:6px;align-items:flex-start;line-height:1.4}
+.alt-toggle{width:100%;margin-top:8px;padding:8px;font-size:12px;border-radius:var(--r3);border:0.5px solid var(--border2);background:transparent;cursor:pointer;color:var(--text2);font-family:inherit;display:flex;align-items:center;justify-content:center;gap:5px}
+.alt-box{background:var(--orange-bg);border-radius:var(--r3);padding:10px;margin-top:6px}
+.alt-hdr{font-size:12px;font-weight:600;color:var(--orange);margin-bottom:5px;display:flex;align-items:center;gap:4px}
+.track-bar{background:var(--bg2);padding:11px 14px;border-top:0.5px solid var(--border)}
+.track-q{font-size:13px;color:var(--text2);margin-bottom:8px;font-weight:500}
+.yesno{display:flex;gap:6px}
+.yn-btn{flex:1;padding:9px 0;border-radius:var(--r3);border:0.5px solid var(--border);background:var(--bg);font-size:13px;cursor:pointer;color:var(--text2);display:flex;align-items:center;justify-content:center;gap:5px;transition:all .15s;font-family:inherit;-webkit-user-select:none;user-select:none}
+.yn-btn.yes.on{background:var(--green-bg);border-color:#86efac;color:var(--green-text);font-weight:500}
+.yn-btn.no.on{background:var(--orange-bg);border-color:var(--orange-border);color:var(--orange);font-weight:500}
+.sub-field{width:100%;margin-top:8px;padding:9px 11px;border-radius:var(--r3);border:0.5px solid var(--border);background:var(--bg);font-size:13px;color:var(--text);font-family:inherit}
+.sub-field:focus{outline:none;border-color:var(--blue)}
+/* Shopping */
+.shop-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.shop-prog-wrap{height:6px;background:var(--bg2);border-radius:3px;margin-bottom:14px;overflow:hidden;border:0.5px solid var(--border)}
+.shop-prog{height:100%;background:var(--blue);border-radius:3px;transition:width .4s}
+.shop-cat-lbl{font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.6px;padding:10px 2px 6px;display:flex;align-items:center;gap:6px}
+.shop-item{display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:var(--r2);margin-bottom:5px;cursor:pointer;border:0.5px solid var(--border);background:var(--bg);transition:opacity .15s;-webkit-user-select:none;user-select:none}
+.shop-item:active{opacity:.7}
+.shop-item.done{opacity:.35}
+.shop-item.done .si-text{text-decoration:line-through;color:var(--text3)}
+.si-check{width:22px;height:22px;border-radius:6px;border:1.5px solid var(--border2);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s;background:var(--bg)}
+.si-check.on{background:var(--blue);border-color:var(--blue)}
+.si-check i{font-size:13px;color:#fff}
+.si-text{font-size:13px;flex:1;line-height:1.4;color:var(--text)}
+/* Training */
+.train-seg{display:flex;border-radius:var(--r2);overflow:hidden;border:0.5px solid var(--border);margin-bottom:12px;background:var(--bg)}
+.t-seg-btn{flex:1;padding:11px 0;text-align:center;font-size:14px;font-weight:500;cursor:pointer;border:none;background:transparent;color:var(--text2);transition:all .15s;font-family:inherit}
+.t-seg-btn.active{background:var(--blue);color:#fff}
+.train-tip{background:var(--blue-bg);border-radius:var(--r3);padding:10px 12px;font-size:12px;color:var(--blue-text);margin-bottom:12px;display:flex;gap:7px;align-items:flex-start;line-height:1.5}
+.ex-card{background:var(--bg);border:0.5px solid var(--border);border-radius:var(--r2);overflow:hidden;margin-bottom:7px}
+.ex-row{display:flex;align-items:center;padding:12px 14px;gap:10px}
+.ex-num{width:28px;height:28px;border-radius:50%;background:var(--blue-bg);color:var(--blue-text);font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.ex-name{flex:1;font-size:13px;line-height:1.4;color:var(--text)}
+.ex-badges{display:flex;gap:5px;flex-shrink:0}
+.ex-badge{padding:3px 8px;border-radius:6px;font-size:11px;background:var(--bg2);color:var(--text2);border:0.5px solid var(--border);white-space:nowrap}
+/* Journal */
+.j-card{background:var(--bg);border:0.5px solid var(--border);border-radius:var(--r);padding:14px 16px;margin-bottom:10px}
+.j-title{font-size:14px;font-weight:600;margin-bottom:12px;display:flex;align-items:center;gap:8px;color:var(--text)}
+.j-title i{font-size:18px;color:var(--blue)}
+.form-row{display:flex;gap:7px;margin-bottom:8px;align-items:center}
+input[type=number],input[type=date],select{height:40px;padding:0 11px;font-size:13px;border:0.5px solid var(--border);border-radius:var(--r3);background:var(--bg);color:var(--text);min-width:0;width:100%;font-family:inherit;-webkit-appearance:none}
+input[type=number]:focus,input[type=date]:focus,select:focus{outline:none;border-color:var(--blue)}
+textarea{width:100%;padding:10px 12px;font-size:13px;border:0.5px solid var(--border);border-radius:var(--r3);background:var(--bg);color:var(--text);resize:none;font-family:inherit;line-height:1.5;margin-bottom:10px}
+textarea:focus{outline:none;border-color:var(--blue)}
+.btn{padding:0 16px;height:40px;font-size:13px;border-radius:var(--r3);border:0.5px solid var(--border2);background:transparent;color:var(--text);cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center;gap:6px;font-family:inherit;transition:background .15s}
+.btn:hover{background:var(--bg2)}
+.btn:active{opacity:.8}
+.btn-primary{background:var(--blue);color:#fff;border-color:var(--blue)}
+.btn-primary:hover{background:#1e40af}
+.btn-success{background:var(--green);color:#fff;border-color:var(--green)}
+.btn-sm{height:34px;padding:0 12px;font-size:12px}
+.btn-del{background:transparent;border:none;color:var(--text3);cursor:pointer;padding:0 4px;display:flex;align-items:center;font-size:18px}
+.log-row{display:flex;align-items:center;padding:8px 10px;border-radius:var(--r3);background:var(--bg2);margin-bottom:5px;font-size:13px;gap:8px}
+.log-date{color:var(--text2);flex-shrink:0;font-size:12px;width:82px}
+.log-val{flex:1;font-weight:500;color:var(--text)}
+.copy-btn{width:100%;padding:13px;font-size:14px;font-weight:600;border-radius:var(--r2);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:all .2s;font-family:inherit;letter-spacing:-.1px}
+.copy-btn.idle{background:var(--blue);color:#fff}
+.copy-btn.done{background:var(--green);color:#fff}
+.hint-text{font-size:11px;color:var(--text2);text-align:center;margin-top:8px;line-height:1.5}
+.spacer{height:16px}
+.install-banner{background:var(--blue-bg);border:0.5px solid var(--border);border-radius:var(--r2);padding:10px 12px;margin-bottom:10px;font-size:12px;color:var(--blue-text);display:flex;gap:8px;align-items:flex-start;line-height:1.5}
+.install-banner i{font-size:17px;flex-shrink:0;margin-top:1px}
+</style>
+</head>
+<body>
+<div class="app" id="root"></div>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+<script>
+const{useState,useEffect}=React;
+const h=React.createElement;
+
+/* ── DATA ─────────────────────────────────────────── */
+const SMOKE_DEFAULT="2026-05-09";
+const MEAL_ACC=["#0ea5e9","#22c55e","#f59e0b","#ec4899"];
+const MEAL_CLS=["c1","c2","c3","c4"];
+
+const MEALS_DAY=[
+  {id:1,title:"Posiłek 1",sub:"Jajecznica z pieczywem",time:"Po przebudzeniu",kcal:530,p:38,f:20,c:45,
+   items:["3 jajka L","1 łyżeczka oliwy z oliwek","2 kromki chleba graham (70g)","150g skyr naturalny","Pomidor + ogórek do woli"]},
+  {id:2,title:"Posiłek 2",sub:"Skyr waniliowy z pieczywem",time:"3–4h po P1",kcal:480,p:35,f:8,c:58,
+   items:["400g skyr waniliowy","2 kromki chleba graham (70g)"],
+   tip:"Zero przygotowania — idealne do pracy"},
+  {id:3,title:"Posiłek 3",sub:"Kurczak z ryżem i warzywami",time:"3–4h po P2",kcal:650,p:52,f:15,c:65,
+   items:["200g pierś z kurczaka","70g ryż brązowy (suchy)","200g mrożone warzywa mix","1 łyżka oliwy","Kurkuma, papryka, czosnek — bez soli"],
+   alt:{title:"Opcja awaryjna: Szam Amm Penne",items:["Szam Amm Penne z kurczakiem 400g","100g twaróg chudy","Zero dosalania przez cały dzień!"]}},
+  {id:4,title:"Posiłek 4",sub:"Twaróg z pieczywem i warzywami",time:"3–4h po P3",kcal:505,p:47,f:12,c:42,
+   items:["250g twaróg chudy","2 kromki chleba graham (70g)","200g warzywa świeże (papryka, ogórek, pomidor)","1 łyżka oliwy LUB 20g orzechów włoskich","Koperek, szczypiorek, czosnek"]}
+];
+const MEALS_NIGHT=[
+  {id:1,title:"Posiłek 1",sub:"Jajecznica z pieczywem",time:"~13:00 po wstaniu",kcal:530,p:38,f:20,c:45,
+   items:["3 jajka L","1 łyżeczka oliwy z oliwek","2 kromki chleba graham (70g)","150g skyr naturalny","Pomidor + ogórek do woli"]},
+  {id:2,title:"Posiłek 2+3",sub:"Kurczak z ryżem — większa porcja",time:"~17:00 przed wyjściem",kcal:750,p:62,f:17,c:75,
+   items:["250g pierś z kurczaka","90g ryż brązowy (suchy)","200g mrożone warzywa mix","1 łyżka oliwy","Kurkuma, papryka, czosnek"],
+   tip:"Gotuj w multicookerze ~25 min przed wyjściem z domu"},
+  {id:3,title:"Posiłek 4",sub:"Skyr do pracy",time:"~01:00–02:00 w pracy",kcal:480,p:35,f:8,c:58,
+   items:["400g skyr waniliowy","2 kromki chleba graham (70g)"],
+   tip:"Spakuj do torby — nie wymaga lodówki"}
+];
+const SHOPPING=[
+  {cat:"Białko",icon:"ti-meat",items:[
+    {id:"p1",t:"Pierś z kurczaka — 1 kg"},
+    {id:"p2",t:"Jajka L — 12 szt."},
+    {id:"p3",t:"Skyr naturalny — 2 szt. × 400–500g"},
+    {id:"p4",t:"Skyr waniliowy — 4 szt. × 400g"},
+    {id:"p5",t:"Twaróg chudy — 5 × 200g"},
+    {id:"p6",t:"Jogurt naturalny 2% — 1 szt."},
+  ]},
+  {cat:"Węglowodany",icon:"ti-bread",items:[
+    {id:"w1",t:"Ryż brązowy — 500g"},
+    {id:"w2",t:"Chleb graham — 2 bochenki"},
+  ]},
+  {cat:"Tłuszcze zdrowe",icon:"ti-droplet",items:[
+    {id:"t1",t:"Oliwa z oliwek extra virgin — 250ml"},
+    {id:"t2",t:"Orzechy włoskie — 200g"},
+  ]},
+  {cat:"Mrożone",icon:"ti-snowflake",items:[
+    {id:"m1",t:"Mrożone warzywa mix — 2 × 400–500g"},
+  ]},
+  {cat:"Warzywa świeże",icon:"ti-plant",items:[
+    {id:"v1",t:"Pomidory — 1 kg"},
+    {id:"v2",t:"Ogórki — 6 szt."},
+    {id:"v3",t:"Papryka kolorowa — 3–4 szt."},
+    {id:"v4",t:"Czosnek — 1 główka"},
+    {id:"v5",t:"Cebula — 3–4 szt."},
+    {id:"v6",t:"Szczypiorek / koperek — 1 pęczek"},
+  ]},
+  {cat:"Opcja awaryjna",icon:"ti-bolt",items:[
+    {id:"a1",t:"Szam Amm Penne z kurczakiem 400g"},
+  ]},
+];
+const TRAIN_A=[
+  {n:"Goblet Squat z hantlem",s:"3×12",r:"75s"},
+  {n:"Romanian Deadlift (2 hantle)",s:"3×10",r:"75s"},
+  {n:"Wiosłowanie hantlem (z oparciem o kolano)",s:"3×12/str.",r:"60s"},
+  {n:"Floor Press z hantlami",s:"3×12",r:"75s"},
+  {n:"Glute Bridge",s:"3×15",r:"60s"},
+  {n:"Plank",s:"3×30s",r:"45s"},
+];
+const TRAIN_B=[
+  {n:"Lunges z hantlami",s:"3×10/str.",r:"75s"},
+  {n:"Dumbbell Row (w opadzie tułowia)",s:"3×12",r:"60s"},
+  {n:"Shoulder Press (hantle)",s:"3×12",r:"75s"},
+  {n:"Hip Hinge / Good Morning",s:"3×12",r:"60s"},
+  {n:"Bird-Dog",s:"3×10/str.",r:"45s"},
+  {n:"Dead Bug",s:"3×10/str.",r:"45s"},
+];
+const TOTAL_SHOP=[].concat(...SHOPPING.map(g=>g.items)).length;
+
+/* ── STORAGE ─────────────────────────────────────── */
+function sg(k){try{const v=localStorage.getItem(k);return v?JSON.parse(v):null}catch{return null}}
+function ss(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch{}}
+
+/* ── UTILS ───────────────────────────────────────── */
+function todayStr(){return new Date().toISOString().split("T")[0]}
+function addDays(s,n){const d=new Date(s);d.setDate(d.getDate()+n);return d.toISOString().split("T")[0]}
+function fmtDate(s){const[y,m,d]=s.split("-");const ms=["sty","lut","mar","kwi","maj","cze","lip","sie","wrz","paź","lis","gru"];const days=["niedz.","pon.","wt.","śr.","czw.","pt.","sob."];const dw=days[new Date(s).getDay()];return dw+" "+d+" "+ms[+m-1]+" "+y}
+function daysSince(d){return Math.max(0,Math.floor((Date.now()-new Date(d).getTime())/86400000))}
+function isIOS(){return/iPad|iPhone|iPod/.test(navigator.userAgent)}
+function isStandalone(){return window.navigator.standalone||window.matchMedia("(display-mode: standalone)").matches}
+
+/* ── APP ─────────────────────────────────────────── */
+function App(){
+  const[tab,setTab]=useState(0);
+  const[smokeDate,setSmokeDate]=useState(()=>sg("sm_d")||SMOKE_DEFAULT);
+  const[editSmoke,setEditSmoke]=useState(false);
+  const[tmpSmoke,setTmpSmoke]=useState(SMOKE_DEFAULT);
+  const[shopCk,setShopCk]=useState(()=>sg("sh_ck")||{});
+  const[dietTrack,setDietTrack]=useState(()=>sg("dt_tr")||{});
+  const[wLogs,setWLogs]=useState(()=>sg("w_logs")||[]);
+  const[sLogs,setSLogs]=useState(()=>sg("s_logs")||{});
+  const[tLogs,setTLogs]=useState(()=>sg("t_logs")||[]);
+  const[night,setNight]=useState(false);
+  const[trainType,setTrainType]=useState("A");
+  const[openMeal,setOpenMeal]=useState(null);
+  const[showAlt,setShowAlt]=useState({});
+  const[selDate,setSelDate]=useState(todayStr());
+  const[wDate,setWDate]=useState(todayStr());
+  const[wKg,setWKg]=useState("");
+  const[wLbm,setWLbm]=useState("");
+  const[wFat,setWFat]=useState("");
+  const[sDate,setSDate]=useState(todayStr());
+  const[sVal,setSVal]=useState("");
+  const[tDate,setTDate]=useState(todayStr());
+  const[tType2,setTType2]=useState("A");
+  const[dietPct,setDietPct]=useState("75");
+  const[notes,setNotes]=useState("");
+  const[copied,setCopied]=useState(false);
+  const[showInstall,setShowInstall]=useState(()=>isIOS()&&!isStandalone());
+
+  const smokeDays=daysSince(smokeDate);
+  const smokeH=Math.floor((Date.now()-new Date(smokeDate).getTime())/3600000);
+  const meals=night?MEALS_NIGHT:MEALS_DAY;
+  const dayTrack=dietTrack[selDate]||{};
+  const doneShop=Object.values(shopCk).filter(Boolean).length;
+  const shopPct=Math.round(doneShop/TOTAL_SHOP*100);
+
+  const saveSmoke=()=>{setSmokeDate(tmpSmoke);setEditSmoke(false);ss("sm_d",tmpSmoke)};
+  const toggleShop=(id)=>{const n={...shopCk,[id]:!shopCk[id]};setShopCk(n);ss("sh_ck",n)};
+  const resetShop=()=>{setShopCk({});ss("sh_ck",{})};
+  const setMealEaten=(mid,val)=>{
+    const dd=dietTrack[selDate]||{};const prev=dd[mid]||{};
+    const n={...dietTrack,[selDate]:{...dd,[mid]:{...prev,eaten:val}}};
+    setDietTrack(n);ss("dt_tr",n);
+  };
+  const setMealSub=(mid,val)=>{
+    const dd=dietTrack[selDate]||{};const prev=dd[mid]||{};
+    const n={...dietTrack,[selDate]:{...dd,[mid]:{...prev,sub:val}}};
+    setDietTrack(n);ss("dt_tr",n);
+  };
+  const addWeight=()=>{
+    if(!wKg)return;
+    const e={date:wDate,kg:+parseFloat(wKg).toFixed(2),lbm:wLbm?+parseFloat(wLbm).toFixed(1):null,fat:wFat?+parseFloat(wFat).toFixed(1):null};
+    const n=[...wLogs.filter(l=>l.date!==wDate),e].sort((a,b)=>a.date>b.date?1:-1);
+    setWLogs(n);ss("w_logs",n);setWKg("");setWLbm("");setWFat("");
+  };
+  const delWeight=(d)=>{const n=wLogs.filter(l=>l.date!==d);setWLogs(n);ss("w_logs",n)};
+  const addSteps=()=>{if(!sVal)return;const n={...sLogs,[sDate]:parseInt(sVal)};setSLogs(n);ss("s_logs",n);setSVal("")};
+  const addTraining=()=>{const n=[...tLogs.filter(t=>t.date!==tDate),{date:tDate,type:tType2}];setTLogs(n);ss("t_logs",n)};
+
+  const getReport=()=>{
+    const from=new Date(Date.now()-7*86400000).toISOString().split("T")[0];
+    const wks=wLogs.filter(l=>l.date>=from);
+    const avg=wks.length?(wks.reduce((s,l)=>s+l.kg,0)/wks.length).toFixed(2):"brak";
+    const sks=Object.entries(sLogs).filter(([d])=>d>=from).sort();
+    const avgS=sks.length?Math.round(sks.reduce((s,[,v])=>s+v,0)/sks.length):"brak";
+    const trs=tLogs.filter(t=>t.date>=from);
+    const ddays=Object.entries(dietTrack).filter(([d])=>d>=from);
+    const dInfo=ddays.map(([d,ms])=>{
+      const subs=Object.entries(ms).filter(([,v])=>v.eaten===false&&v.sub).map(([id,v])=>`P${id}: ${v.sub}`);
+      const ate=Object.values(ms).filter(v=>v.eaten===true).length;
+      return`  ${d}: ${ate} posilkow zgodnych${subs.length?"\n    Zamienniki: "+subs.join(", "):""}`;
+    }).join("\n")||"  brak zapisow z aplikacji";
+    return`RAPORT TYGODNIOWY
+${from} -> ${todayStr()}
+Bez papierosa: ${smokeDays} dni
+
+WAGA:
+${wks.map(l=>`  ${l.date}: ${l.kg} kg${l.lbm?` | LBM: ${l.lbm} kg`:""}${l.fat?` | TT: ${l.fat}%`:""}`).join("\n")||"  brak pomiarow"}
+  Srednia tygodniowa: ${avg} kg
+
+DIETA (samoocena ${dietPct}%):
+${dInfo}
+
+KROKI:
+${sks.map(([d,s])=>`  ${d}: ${Number(s).toLocaleString("pl")}`).join("\n")||"  brak danych"}
+  Srednia/dzien: ${typeof avgS==="number"?Number(avgS).toLocaleString("pl"):avgS}
+
+TRENINGI (${trs.length} w tygodniu):
+${trs.map(t=>`  ${t.date}: Trening ${t.type}`).join("\n")||"  brak treningow"}
+${notes?`\nUWAGI: ${notes}`:""}
+--- plan zdrowotny app ---`;
+  };
+
+  const copyReport=()=>{
+    navigator.clipboard.writeText(getReport())
+      .then(()=>{setCopied(true);setTimeout(()=>setCopied(false),2500)})
+      .catch(()=>{
+        const ta=document.createElement("textarea");
+        ta.value=getReport();document.body.appendChild(ta);
+        ta.select();document.execCommand("copy");
+        document.body.removeChild(ta);
+        setCopied(true);setTimeout(()=>setCopied(false),2500);
+      });
+  };
+
+  /* ── TAB 0: GŁÓWNA ────────────────────────────── */
+  const renderHome=()=>h("div",{className:"content"},
+    showInstall&&h("div",{className:"install-banner"},
+      h("i",{className:"ti ti-device-mobile-share"}),
+      h("div",null,
+        h("strong",null,"Dodaj do ekranu głównego: "),
+        "Dotknij ",h("strong",null,"Udostępnij"),
+        " → ",h("strong",null,"Dodaj do ekranu głównego"),
+        " i korzystaj jak z aplikacji.",
+        h("button",{onClick:()=>setShowInstall(false),style:{marginLeft:8,fontSize:11,color:"var(--blue-text)",background:"none",border:"none",cursor:"pointer"}},"Ukryj")
+      )
+    ),
+    h("div",{className:"smoke-hero"},
+      h("div",{className:"smoke-days"},smokeDays),
+      h("div",{className:"smoke-caption"},"dni bez papierosa"),
+      h("div",{className:"smoke-since"},"od "+fmtDate(smokeDate)+" · kliknij licznik u góry, żeby zmienić datę"),
+      h("div",{className:"smoke-stats"},
+        h("div",{className:"smoke-stat"},h("div",{className:"smoke-stat-val"},smokeH),h("div",{className:"smoke-stat-lbl"},"godzin")),
+        h("div",{className:"smoke-stat"},h("div",{className:"smoke-stat-val"},smokeDays*10),h("div",{className:"smoke-stat-lbl"},"papier. mniej")),
+        h("div",{className:"smoke-stat"},h("div",{className:"smoke-stat-val"},Math.round(smokeDays*11)+"zł"),h("div",{className:"smoke-stat-lbl"},"oszczędzone"))
+      )
+    ),
+    h("div",{className:"section-title"},"Cel dzienny"),
+    h("div",{className:"kpi-grid"},
+      h("div",{className:"kpi"},h("div",{className:"kpi-val"},"2200"),h("div",{className:"kpi-lbl"},"kcal dziennie")),
+      h("div",{className:"kpi"},h("div",{className:"kpi-val"},"165g"),h("div",{className:"kpi-lbl"},"białko")),
+      h("div",{className:"kpi"},h("div",{className:"kpi-val"},"5 000"),h("div",{className:"kpi-lbl"},"kroków/dzień")),
+      h("div",{className:"kpi"},h("div",{className:"kpi-val"},"3L"),h("div",{className:"kpi-lbl"},"wody dziennie"))
+    ),
+    h("div",{className:"section-title"},"Zasady medyczne"),
+    h("div",{className:"warn-box"},h("i",{className:"ti ti-alert-triangle"}),"Sól max 2g/dzień. Przy Szam Amm — zero dosalania przez cały dzień!"),
+    h("div",{className:"card"},
+      [{ic:"ti-circle-x",c:"#dc2626",t:"Unikaj: podroby, sardynki, śledź, makrela, piwo, alkohol"},
+       {ic:"ti-clock-pause",c:"#d97706",t:"Nie pomijaj posiłków — kamica żółciowa wymaga regularnego jedzenia"},
+       {ic:"ti-droplet",c:"#0284c7",t:"Min. 3 litry wody dziennie — kluczowe przy dnie moczanowej"},
+       {ic:"ti-lungs",c:"#7c3aed",t:"Wydychaj podczas wysiłku — nigdy nie wstrzymuj oddechu"}]
+      .map((r,i)=>h("div",{key:i,className:"rule"},h("i",{className:"ti "+r.ic,style:{color:r.c}}),r.t))
+    )
+  );
+
+  /* ── TAB 1: DIETA ─────────────────────────────── */
+  const renderDieta=()=>h("div",{className:"content"},
+    h("div",{className:"night-row"},
+      h("i",{className:"ti "+(night?"ti-moon":"ti-sun"),style:{fontSize:19,color:night?"#818cf8":"#f59e0b"}}),
+      h("span",{className:"night-lbl"},night?"Tryb nocka — 3 posiłki":"Tryb dzienny — 4 posiłki"),
+      h("label",{className:"tog"},h("input",{type:"checkbox",checked:night,onChange:e=>setNight(e.target.checked)}),h("span",{className:"tslide"}))
+    ),
+    h("div",{className:"date-nav"},
+      h("button",{className:"dnav-btn",onClick:()=>setSelDate(addDays(selDate,-1))},h("i",{className:"ti ti-chevron-left"})),
+      h("span",{className:"dnav-date"},fmtDate(selDate)),
+      h("button",{className:"dnav-btn",onClick:()=>setSelDate(addDays(selDate,1))},h("i",{className:"ti ti-chevron-right"})),
+      selDate!==todayStr()&&h("button",{className:"today-lnk",onClick:()=>setSelDate(todayStr())},"dziś")
+    ),
+    meals.map((m,idx)=>{
+      const track=dayTrack[m.id]||{};
+      const isEaten=track.eaten===true;
+      const isSkipped=track.eaten===false;
+      const ci=idx%4;
+      return h("div",{key:m.id,className:"meal-card"+(isEaten?" eaten":isSkipped?" skipped":"")},
+        h("div",{className:"meal-accent",style:{background:MEAL_ACC[ci]}}),
+        h("div",{className:"meal-header",onClick:()=>setOpenMeal(openMeal===m.id?null:m.id)},
+          h("div",{className:"meal-badge "+MEAL_CLS[ci]+(isEaten?" eaten":isSkipped?" skipped":"")},
+            isEaten?h("i",{className:"ti ti-check",style:{fontSize:14}}):isSkipped?h("i",{className:"ti ti-x",style:{fontSize:14}}):m.id
+          ),
+          h("div",{style:{flex:1,minWidth:0}},
+            h("div",{className:"meal-name"},m.title+" — "+m.sub),
+            h("div",{className:"meal-meta"},m.time),
+            h("div",{className:"meal-macros"},m.kcal+" kcal  ·  B "+m.p+"g  ·  T "+m.f+"g  ·  W "+m.c+"g")
+          ),
+          h("i",{className:"ti ti-chevron-down caret"+(openMeal===m.id?" open":"")})
+        ),
+        openMeal===m.id&&h("div",{className:"meal-body"},
+          m.tip&&h("div",{className:"tip-note"},h("i",{className:"ti ti-info-circle",style:{flexShrink:0}}),m.tip),
+          h("ul",{className:"ingr-list"},m.items.map((it,i)=>h("li",{key:i},h("span",{className:"dot",style:{background:MEAL_ACC[ci]}}),it))),
+          m.alt&&h("div",null,
+            h("button",{className:"alt-toggle",onClick:e=>{e.stopPropagation();setShowAlt({...showAlt,[m.id]:!showAlt[m.id]})}},
+              h("i",{className:"ti ti-bolt"}),(showAlt[m.id]?"Ukryj":"Pokaż")+" opcję awaryjną"
+            ),
+            showAlt[m.id]&&h("div",{className:"alt-box"},
+              h("div",{className:"alt-hdr"},h("i",{className:"ti ti-bolt"}),m.alt.title),
+              h("ul",{className:"ingr-list"},m.alt.items.map((it,i)=>h("li",{key:i},h("span",{className:"dot",style:{background:"#f97316"}}),it)))
+            )
+          )
+        ),
+        h("div",{className:"track-bar"},
+          h("div",{className:"track-q"},"Zjadłeś ten posiłek?"),
+          h("div",{className:"yesno"},
+            h("button",{className:"yn-btn yes"+(isEaten?" on":""),onClick:()=>setMealEaten(m.id,true)},h("i",{className:"ti ti-check"}),"Tak, zjadłem"),
+            h("button",{className:"yn-btn no"+(isSkipped?" on":""),onClick:()=>setMealEaten(m.id,false)},h("i",{className:"ti ti-x"}),"Nie")
+          ),
+          isSkipped&&h("input",{type:"text",className:"sub-field",placeholder:"Co zjadłeś zamiast? (opcjonalnie)",value:track.sub||"",onChange:e=>setMealSub(m.id,e.target.value),onClick:e=>e.stopPropagation()})
+        )
+      )
+    })
+  );
+
+  /* ── TAB 2: ZAKUPY ────────────────────────────── */
+  const renderZakupy=()=>h("div",{className:"content"},
+    h("div",{className:"shop-header"},
+      h("span",{style:{fontSize:13,color:"var(--text2)"}},"Zakupiono: "+doneShop+" / "+TOTAL_SHOP+" ("+shopPct+"%)"),
+      h("button",{className:"btn btn-sm",onClick:resetShop},h("i",{className:"ti ti-refresh"}),"Reset")
+    ),
+    h("div",{className:"shop-prog-wrap"},h("div",{className:"shop-prog",style:{width:shopPct+"%"}})),
+    SHOPPING.map(grp=>h("div",{key:grp.cat},
+      h("div",{className:"shop-cat-lbl"},h("i",{className:"ti "+grp.icon,style:{fontSize:14}}),grp.cat),
+      grp.items.map(it=>h("div",{key:it.id,className:"shop-item"+(shopCk[it.id]?" done":""),onClick:()=>toggleShop(it.id)},
+        h("div",{className:"si-check"+(shopCk[it.id]?" on":"")},shopCk[it.id]&&h("i",{className:"ti ti-check"})),
+        h("span",{className:"si-text"},it.t)
+      ))
+    )),
+    h("div",{className:"spacer"})
+  );
+
+  /* ── TAB 3: TRENING ───────────────────────────── */
+  const renderTrening=()=>h("div",{className:"content"},
+    h("div",{className:"train-seg"},
+      h("button",{className:"t-seg-btn"+(trainType==="A"?" active":""),onClick:()=>setTrainType("A")},h("i",{className:"ti ti-alpha"})," Trening A"),
+      h("button",{className:"t-seg-btn"+(trainType==="B"?" active":""),onClick:()=>setTrainType("B")},h("i",{className:"ti ti-letter-b"})," Trening B")
+    ),
+    h("div",{className:"train-tip"},
+      h("i",{className:"ti ti-heart-rate-monitor",style:{flexShrink:0}}),
+      "Wydychaj podczas wysiłku — wdech przy powrocie. Przy bólu głowy lub zawrotach: stop!"
+    ),
+    h("div",{style:{fontSize:12,color:"var(--text2)",marginBottom:10,paddingLeft:2}},"20–40 min · rotuj A→B→A co trening · 3 razy w tygodniu"),
+    (trainType==="A"?TRAIN_A:TRAIN_B).map((ex,i)=>h("div",{key:i,className:"ex-card"},
+      h("div",{className:"ex-row"},
+        h("div",{className:"ex-num"},i+1),
+        h("div",{className:"ex-name"},ex.n),
+        h("div",{className:"ex-badges"},h("span",{className:"ex-badge"},ex.s),h("span",{className:"ex-badge"},ex.r))
+      )
+    )),
+    h("div",{className:"spacer"})
+  );
+
+  /* ── TAB 4: DZIENNIK ──────────────────────────── */
+  const renderDziennik=()=>h("div",{className:"content"},
+    h("div",{className:"j-card"},
+      h("div",{className:"j-title"},h("i",{className:"ti ti-scale"}),"Pomiar wagi"),
+      h("div",{className:"form-row"},
+        h("input",{type:"date",value:wDate,onChange:e=>setWDate(e.target.value),style:{flex:"0 0 148px"}}),
+        h("input",{type:"number",placeholder:"waga kg",step:"0.05",value:wKg,onChange:e=>setWKg(e.target.value)})
+      ),
+      h("div",{className:"form-row"},
+        h("input",{type:"number",placeholder:"LBM kg (opcja)",step:"0.1",value:wLbm,onChange:e=>setWLbm(e.target.value)}),
+        h("input",{type:"number",placeholder:"TT% (opcja)",step:"0.1",value:wFat,onChange:e=>setWFat(e.target.value)})
+      ),
+      h("button",{className:"btn btn-primary",style:{width:"100%"},onClick:addWeight},h("i",{className:"ti ti-plus"}),"Zapisz pomiar"),
+      wLogs.length>0&&h("div",{style:{marginTop:10}},
+        [...wLogs].reverse().slice(0,7).map(l=>h("div",{key:l.date,className:"log-row"},
+          h("span",{className:"log-date"},l.date),
+          h("span",{className:"log-val"},l.kg+" kg"+(l.lbm?" · "+l.lbm+" kg":"")+(l.fat?" · "+l.fat+"%":"")),
+          h("button",{className:"btn-del",onClick:()=>delWeight(l.date)},h("i",{className:"ti ti-trash"}))
+        ))
+      )
+    ),
+    h("div",{className:"j-card"},
+      h("div",{className:"j-title"},h("i",{className:"ti ti-run"}),"Kroki dzienne"),
+      h("div",{className:"form-row"},
+        h("input",{type:"date",value:sDate,onChange:e=>setSDate(e.target.value),style:{flex:"0 0 148px"}}),
+        h("input",{type:"number",placeholder:"liczba kroków",value:sVal,onChange:e=>setSVal(e.target.value)}),
+        h("button",{className:"btn btn-primary",onClick:addSteps,style:{flexShrink:0}},h("i",{className:"ti ti-plus"}))
+      ),
+      Object.entries(sLogs).sort((a,b)=>b[0]>a[0]?1:-1).slice(0,5).map(([d,s])=>
+        h("div",{key:d,className:"log-row"},h("span",{className:"log-date"},d),h("span",{className:"log-val"},Number(s).toLocaleString("pl")+" kroków"))
+      )
+    ),
+    h("div",{className:"j-card"},
+      h("div",{className:"j-title"},h("i",{className:"ti ti-barbell"}),"Zapisz trening"),
+      h("div",{className:"form-row"},
+        h("input",{type:"date",value:tDate,onChange:e=>setTDate(e.target.value),style:{flex:"0 0 148px"}}),
+        h("select",{value:tType2,onChange:e=>setTType2(e.target.value)},
+          h("option",{value:"A"},"Trening A"),h("option",{value:"B"},"Trening B")
+        ),
+        h("button",{className:"btn btn-primary",onClick:addTraining,style:{flexShrink:0}},h("i",{className:"ti ti-check"}))
+      ),
+      tLogs.slice(-4).reverse().map(t=>h("div",{key:t.date,className:"log-row"},h("span",{className:"log-date"},t.date),h("span",{className:"log-val"},"Trening "+t.type)))
+    ),
+    h("div",{className:"j-card"},
+      h("div",{className:"j-title"},h("i",{className:"ti ti-file-report"}),"Raport tygodniowy"),
+      h("div",{className:"form-row",style:{alignItems:"center"}},
+        h("span",{style:{fontSize:13,color:"var(--text2)",whiteSpace:"nowrap"}},"Dieta %"),
+        h("input",{type:"number",min:0,max:100,placeholder:"np. 75",value:dietPct,onChange:e=>setDietPct(e.target.value)})
+      ),
+      h("textarea",{rows:3,placeholder:"Uwagi, samopoczucie, co utrudniało, co ułatwiało...",value:notes,onChange:e=>setNotes(e.target.value)}),
+      h("button",{className:"copy-btn "+(copied?"done":"idle"),onClick:copyReport},
+        h("i",{className:"ti "+(copied?"ti-check":"ti-clipboard-copy")}),
+        copied?"Skopiowano! Wklej w czacie z Claude":"Kopiuj raport tygodniowy"
+      ),
+      h("div",{className:"hint-text"},"Raport zawiera dane o posiłkach, wadze, krokach i treningach z 7 dni. Wklej go w rozmowie z Claude, żeby otrzymać analizę.")
+    ),
+    h("div",{className:"spacer"})
+  );
+
+  return h("div",{className:"app"},
+    h("div",{className:"header"},
+      h("h1",null,"Plan zdrowotny"),
+      h("button",{className:"smoke-pill",onClick:()=>{setTmpSmoke(smokeDate);setEditSmoke(!editSmoke)}},
+        h("i",{className:"ti ti-leaf"}),smokeDays+" dni"
+      )
+    ),
+    editSmoke&&h("div",{className:"smoke-edit"},
+      h("span",{style:{fontSize:12,color:"var(--green-text)",flex:1}},"Data rzucenia palenia:"),
+      h("input",{type:"date",value:tmpSmoke,onChange:e=>setTmpSmoke(e.target.value),style:{height:32,fontSize:12,padding:"0 8px",border:"0.5px solid var(--green-border)",borderRadius:7,background:"var(--bg)",color:"var(--text)"}}),
+      h("button",{onClick:saveSmoke,style:{height:32,padding:"0 14px",fontSize:13,background:"var(--green)",color:"#fff",border:"none",borderRadius:7,cursor:"pointer",fontFamily:"inherit"}},"Zapisz")
+    ),
+    h("div",{className:"tabs"},
+      [{ic:"ti-layout-dashboard",lb:"Główna"},{ic:"ti-salad",lb:"Dieta"},{ic:"ti-shopping-cart",lb:"Zakupy"},{ic:"ti-barbell",lb:"Trening"},{ic:"ti-notebook",lb:"Dziennik"}]
+      .map((t,i)=>h("button",{key:i,className:"tab-btn"+(tab===i?" active":""),onClick:()=>setTab(i)},
+        h("i",{className:"ti "+t.ic}),t.lb
+      ))
+    ),
+    tab===0&&renderHome(),
+    tab===1&&renderDieta(),
+    tab===2&&renderZakupy(),
+    tab===3&&renderTrening(),
+    tab===4&&renderDziennik()
+  )
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(h(App));
+</script>
+</body>
+</html>
